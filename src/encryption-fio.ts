@@ -1,7 +1,8 @@
 import {checkEncrypt, checkDecrypt} from './encryption-check';
 import * as ser from './chain-serialize';
+import { PrivateKey, isExternalPrivateKey } from './chain-jssig'
 
-const {PublicKey, PrivateKey} = require('./ecc');
+const {PublicKey, PrivateKey: EccPrivateKey} = require('./ecc');
 const fioAbi = require('../src/encryption-fio.abi.json');
 const createHmac = require('create-hmac')
 
@@ -17,10 +18,15 @@ export function deserialize(serialBuffer: ser.SerialBuffer, type: string): any {
     return fioTypes.get(type).deserialize(serialBuffer);
 }
 
-export function createSharedCipher({privateKey, publicKey, textEncoder, textDecoder} = {} as {privateKey: any, publicKey: any, textEncoder? : TextEncoder, textDecoder? : TextDecoder}) : SharedCipher {
-    privateKey = PrivateKey(privateKey);
+export function createSharedCipher({privateKey, publicKey, textEncoder, textDecoder} = {} as {privateKey: PrivateKey, publicKey: any, textEncoder? : TextEncoder, textDecoder? : TextDecoder}) : SharedCipher {
     publicKey = PublicKey(publicKey);
-    const sharedSecret = privateKey.getSharedSecret(publicKey);
+
+    let sharedSecret: Buffer;
+    if (isExternalPrivateKey(privateKey)) {
+        sharedSecret = privateKey.getSharedSecret(publicKey);
+    } else {
+        sharedSecret = EccPrivateKey(privateKey).getSharedSecret(publicKey);
+    }
     return new SharedCipher({sharedSecret, textEncoder, textDecoder});
 }
 

@@ -27,18 +27,33 @@ function hexToUint8Array(hex: string) {
     return result;
 }
 
+export interface ExternalPrivateKey {
+    publicKey: string;
+    sign(signBuf: ArrayBuffer): string;
+    getSharedSecret(publicKey: any): Buffer;
+}
+
+export function isExternalPrivateKey(x: any): x is ExternalPrivateKey {
+    return (typeof x === "object" || typeof x === "function")
+        && "publicKey" in x && typeof x.publicKey === "string"
+        && "sign" in x && typeof x.sign === "function"
+        && "getSharedSecret" in x && typeof x.getSharedSecret === "function";
+}
+
+export type PrivateKey = string | ExternalPrivateKey;
+
 /** Signs transactions using in-process private keys */
 export class JsSignatureProvider implements SignatureProvider {
     /** map public to private keys */
-    public keys = new Map<string, string>();
+    public keys = new Map<string, PrivateKey>();
 
     /** public keys */
     public availableKeys = [] as string[];
 
     /** @param privateKeys private keys to sign with */
-    constructor(privateKeys: string[]) {
+    constructor(privateKeys: PrivateKey[]) {
         for (const k of privateKeys) {
-            const pub = convertLegacyPublicKey(ecc.PrivateKey.fromString(k).toPublic().toString());
+	    const pub = convertLegacyPublicKey(isExternalPrivateKey(k) ? k.publicKey : ecc.PrivateKey.fromString(k).toPublic().toString());
             this.keys.set(pub, k);
             this.availableKeys.push(pub);
         }
@@ -62,9 +77,13 @@ export class JsSignatureProvider implements SignatureProvider {
                     new Uint8Array(32)
             ),
         ]);
-        const signatures = requiredKeys.map(
-            (pub) => ecc.Signature.sign(signBuf, this.keys.get(convertLegacyPublicKey(pub))).toString(),
-        );
+        const signatures = await Promise.all(requiredKeys.map(
+            async (pub) => {
+                const priv = this.keys.get(convertLegacyPublicKey(pub));
+                if (isExternalPrivateKey(priv)) return priv.sign(signBuf);
+                return ecc.Signature.sign(signBuf, priv).toString();
+	        },
+        ));
         return { signatures, serializedTransaction, serializedContextFreeData };
     }
 }
