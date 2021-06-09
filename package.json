@@ -34,13 +34,12 @@
     "ecurve": "^1.0.6",
     "long": "^4.0.0",
     "randombytes": "^2.1.0",
-    "text-encoding": "0.7.0"
+    "web-encoding": "^1.1.5"
   },
   "devDependencies": {
     "@blockone/tslint-config-blockone": "3.0.0",
     "@types/jest": "24.0.6",
     "@types/node": "11.9.4",
-    "@types/text-encoding": "0.0.35",
     "babel-cli": "6.26.0",
     "babel-plugin-transform-runtime": "6.23.0",
     "babel-preset-env": "1.7.0",
