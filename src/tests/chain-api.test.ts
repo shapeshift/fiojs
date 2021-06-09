@@ -1,4 +1,4 @@
-import { TextDecoder, TextEncoder } from 'text-encoding';
+import { TextDecoder, TextEncoder } from 'web-encoding';
 
 import { Api, signAllAuthorityProvider } from '../chain-api';
 import { JsSignatureProvider } from '../chain-jssig';

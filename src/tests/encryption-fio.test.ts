@@ -1,4 +1,4 @@
-import { TextDecoder, TextEncoder } from 'text-encoding';
+import { TextDecoder, TextEncoder } from 'web-encoding';
 import * as ser from '../chain-serialize';
 
 const { PrivateKey } = require('../ecc');
