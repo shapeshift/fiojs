@@ -29,8 +29,8 @@ function hexToUint8Array(hex: string) {
 
 export interface ExternalPrivateKey {
     publicKey: string;
-    sign(signBuf: ArrayBuffer): string;
-    getSharedSecret(publicKey: any): Buffer;
+    sign(signBuf: ArrayBuffer): Promise<string>;
+    getSharedSecret(publicKey: any): Promise<Buffer>;
 }
 
 export function isExternalPrivateKey(x: any): x is ExternalPrivateKey {
@@ -80,7 +80,7 @@ export class JsSignatureProvider implements SignatureProvider {
         const signatures = await Promise.all(requiredKeys.map(
             async (pub) => {
                 const priv = this.keys.get(convertLegacyPublicKey(pub));
-                if (isExternalPrivateKey(priv)) return priv.sign(signBuf);
+                if (isExternalPrivateKey(priv)) return await priv.sign(signBuf);
                 return ecc.Signature.sign(signBuf, priv).toString();
 	        },
         ));

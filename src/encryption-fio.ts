@@ -18,12 +18,12 @@ export function deserialize(serialBuffer: ser.SerialBuffer, type: string): any {
     return fioTypes.get(type).deserialize(serialBuffer);
 }
 
-export function createSharedCipher({privateKey, publicKey, textEncoder, textDecoder} = {} as {privateKey: PrivateKey, publicKey: any, textEncoder? : TextEncoder, textDecoder? : TextDecoder}) : SharedCipher {
+export async function createSharedCipher({privateKey, publicKey, textEncoder, textDecoder} = {} as {privateKey: PrivateKey, publicKey: any, textEncoder? : TextEncoder, textDecoder? : TextDecoder}) : Promise<SharedCipher> {
     publicKey = PublicKey(publicKey);
 
     let sharedSecret: Buffer;
     if (isExternalPrivateKey(privateKey)) {
-        sharedSecret = privateKey.getSharedSecret(publicKey);
+        sharedSecret = await privateKey.getSharedSecret(publicKey);
     } else {
         sharedSecret = EccPrivateKey(privateKey).getSharedSecret(publicKey);
     }
